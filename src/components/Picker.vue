@@ -6,11 +6,7 @@
       </slot>
     </div>
     <transition name="slide-fade" mode="out-in">
-      <div
-        class="mdrp__panel dropdown-menu"
-        :class="pickerStyles()"
-        v-show="pickerVisible"
-      >
+      <div class="mdrp__panel dropdown-menu" :class="pickerStyles()" v-show="pickerVisible">
         <calendar-ranges
           v-if="showPresets && presets"
           :canSelect="inRange"
@@ -26,6 +22,7 @@
           :locale="locale"
           :start="start_"
           :end="end_"
+          :maxDate="maxDate_"
           :hover-start="hoverStart_"
           :hover-end="hoverEnd_"
           @clickNextMonth="clickNextMonth"
@@ -41,6 +38,7 @@
           :locale="locale"
           :start="start_"
           :end="end_"
+          :maxDate="maxDate_"
           :hover-start="hoverStart_"
           :hover-end="hoverEnd_"
           @clickNextMonth="clickNextMonth"
@@ -55,22 +53,22 @@
 </template>
 
 <script>
-import moment from 'moment';
-import Calendar from './Calendar.vue';
-import CalendarRanges from './Ranges.vue';
-import DefaultActivator from './widgets/activator.vue';
+import moment from "moment";
+import Calendar from "./Calendar.vue";
+import CalendarRanges from "./Ranges.vue";
+import DefaultActivator from "./widgets/activator.vue";
 
-import clickoutside from '../directives/clickoutside';
+import clickoutside from "../directives/clickoutside";
 
-import { defaultPresets } from '../constant/index.js';
+import { defaultPresets } from "../constant/index.js";
 
 export default {
-  name: 'v-md-date-range-picker',
+  name: "v-md-date-range-picker",
   components: { Calendar, CalendarRanges, DefaultActivator },
   directives: { clickoutside },
-  provide () {
+  provide() {
     return {
-      'picker': this,
+      picker: this
     };
   },
   props: {
@@ -78,82 +76,91 @@ export default {
     // If you provide a string, it must match the date format string set in your locale setting
     startDate: {
       type: String,
-      default: moment().format('YYYY-MM-DD'),
+      default: moment().format("YYYY-MM-DD")
     },
     // The end date of the initially selected date range.
     endDate: {
       type: String,
-      default: moment().format('YYYY-MM-DD'),
+      default: moment().format("YYYY-MM-DD")
     },
     // Set predefined date ranges the user can select from.
     // The range of each object an array with two dates representing the bounds of the range.
     presets: {
       type: Array,
-      default () {
+      default() {
         return defaultPresets;
-      },
+      }
     },
     // Whether the picker appears aligned to the left, to the right, or centered under the HTML element it's attached to.
     opens: {
       type: String,
-      default: 'left',
+      default: "left"
     },
     // Displays "Custom Range" at the end of the list of predefined ranges, when the ranges option is used.
     // This option will be highlighted whenever the current date range selection does not match one of the predefined ranges.
     // Clicking it will display the calendars to select a new range.
     showCustomRangeLabel: {
       type: Boolean,
-      default: false,
+      default: false
     },
     // Show year select boxes above calendars to jump to a specific year.
     showYearSelect: {
       type: Boolean,
-      default: false,
+      default: false
     },
     // The minimum year shown in the dropdowns when showYearSelect is set to true.
     minYear: {
       type: String,
-      default: moment().subtract(100, 'year').format('YYYY'),
+      default: moment()
+        .subtract(100, "year")
+        .format("YYYY")
     },
     // The maximum year shown in the dropdowns when showYearSelect is set to true.
     maxYear: {
       type: String,
-      default: moment().add(100, 'year').format('YYYY'),
+      default: moment()
+        .add(100, "year")
+        .format("YYYY")
+    },
+    // The maximum date that is selectable.
+    maxDate: {
+      type: String,
+      default: moment().format("YYYY-MM-DD")
     },
     // Hide the apply and cancel buttons, and automatically apply a new date range as soon as two dates are clicked.
     autoApply: {
       type: Boolean,
-      default: true,
+      default: true
     },
     // show label for the default activator (inputbox)
     showActivatorLabel: {
       type: Boolean,
-      default: true,
+      default: true
     },
     // show animation bar for the default activator (inputbox)
     showActivatorBar: {
       type: Boolean,
-      default: true,
+      default: true
     },
     showPresets: {
       type: Boolean,
-      default: true,
-    },
+      default: true
+    }
   },
-  data () {
+  data() {
     const data = {
       locale: {
-        direction: 'ltr',
-        format: moment.localeData().longDateFormat('L'),
-        separator: ' - ',
-        applyLabel: 'Apply',
-        cancelLabel: 'Cancel',
-        weekLabel: 'W',
-        customRangeLabel: 'Custom Range',
+        direction: "ltr",
+        format: moment.localeData().longDateFormat("L"),
+        separator: " - ",
+        applyLabel: "Apply",
+        cancelLabel: "Cancel",
+        weekLabel: "W",
+        customRangeLabel: "Custom Range",
         daysOfWeek: moment.weekdaysMin(),
         monthNames: moment.monthsShort(),
-        firstDay: moment.localeData().firstDayOfWeek(),
-      },
+        firstDay: moment.localeData().firstDayOfWeek()
+      }
     };
     // TODO 这里的 props 究竟是放在 data 里面进行初始化好，还是放在生命周期中好呢？
     // https://github.com/ly525/blog/issues/252
@@ -162,6 +169,7 @@ export default {
     data.rightCalendarMonth_ = moment(this.endDate);
     data.start_ = moment(this.startDate);
     data.end_ = moment(this.endDate);
+    data.maxDate_ = moment(this.maxDate);
     data.hoverStart_ = moment(this.startDate);
     data.hoverEnd_ = moment(this.endDate);
     // fix #14
@@ -184,23 +192,29 @@ export default {
     return data;
   },
   methods: {
-    clickYearSelect ({ location, calendarMonth }) {
+    clickYearSelect({ location, calendarMonth }) {
       this[`${location}CalendarMonth_`] = calendarMonth.clone();
     },
-    clickNextMonth () {
+    clickNextMonth() {
       // TODO 如果有 linkedCalendars，需要更新代码
       // moment.js 的 add 和 sub tract 的改变自身的行为没有被 watch 到，原因是什么呢？
-      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().add(1, 'month');
+      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().add(1, "month");
     },
-    clickPrevMonth () {
+    clickPrevMonth() {
       // TODO 如果有 linkedCalendars，需要更新代码
-      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().subtract(1, 'month');
+      this.leftCalendarMonth_ = this.leftCalendarMonth_
+        .clone()
+        .subtract(1, "month");
     },
     /**
      * TODO type of value
      */
-    dateClick (value) {
-      if (this.inRange) { // second click
+    dateClick(value) {
+      if (value.isAfter(this.maxDate_)) {
+        return;
+      }
+      if (this.inRange) {
+        // second click
         // second click action(第二次点击)
         this.inRange = false;
         // if second click value is smaller than first, which means user clicked a previous date,
@@ -216,7 +230,8 @@ export default {
         if (this.autoApply) {
           this.clickApply();
         }
-      } else { // first click
+      } else {
+        // first click
         // first click action, set value as start and end(第一次点击, 设置起始值皆为点击的值)
         this.inRange = true;
         this.start_ = value.clone();
@@ -228,7 +243,7 @@ export default {
         // updateMonthCalendar() === callback function for watch start_
       }
     },
-    hoverDate (value) {
+    hoverDate(value) {
       if (this.inRange) {
         if (value > this.start_) {
           // 参见：https://github.com/ly525/blog/issues/254
@@ -240,12 +255,19 @@ export default {
         }
       }
     },
-    togglePicker () {
+    togglePicker() {
       // ---- fix #53 start ----
       let elm = this.$refs.defaultActivator && this.$refs.defaultActivator.$el;
       // fix #55: this.$slots.input[0] -> this.$slots.input[0].elm
-      const slotActivator = this.$slots.input && this.$slots.input.length && this.$slots.input[0].elm;
-      if (!elm && (slotActivator.querySelector('input') || slotActivator.querySelector('button'))) {
+      const slotActivator =
+        this.$slots.input &&
+        this.$slots.input.length &&
+        this.$slots.input[0].elm;
+      if (
+        !elm &&
+        (slotActivator.querySelector("input") ||
+          slotActivator.querySelector("button"))
+      ) {
         elm = slotActivator;
       }
 
@@ -271,15 +293,15 @@ export default {
       }
       // ---- fix #53 end ----
     },
-    pickerStyles () {
+    pickerStyles() {
       return {
-        'show-calendar': this.pickerVisible,
-        'opens-arrow-pos-right': this.opens === 'right',
-        'opens-arrow-pos-left': this.opens === 'left',
-        'opens-arrow-pos-center': this.opens === 'center',
+        "show-calendar": this.pickerVisible,
+        "opens-arrow-pos-right": this.opens === "right",
+        "opens-arrow-pos-left": this.opens === "left",
+        "opens-arrow-pos-center": this.opens === "center"
       };
     },
-    clickApply () {
+    clickApply() {
       this.pickerVisible = false;
 
       // fix #14
@@ -296,7 +318,7 @@ export default {
       this.cloneForCancelUsage();
       this.emitChange();
     },
-    clickPreset (preset) {
+    clickPreset(preset) {
       if (preset.label === this.locale.customRangeLabel) return;
       const [start, end] = preset.range;
       this.start_ = moment(start);
@@ -313,8 +335,8 @@ export default {
     },
     /**
      *
-    */
-    updateTextField () {
+     */
+    updateTextField() {
       // do not update the input slot provided content by the parent
       if (this.$slots.input) return;
 
@@ -331,18 +353,22 @@ export default {
      * DONE we also need to do clone start and end in the watcher of ther related prop
      *
      */
-    cloneForCancelUsage () {
+    cloneForCancelUsage() {
       this.cloneStart = this.start_.clone();
       this.cloneEnd = this.end_.clone();
     },
-    emitChange () {
+    emitChange() {
       const start = this.start_.clone();
       const end = this.end_.clone();
-      this.$emit('change', [start, end], [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')]);
+      this.$emit(
+        "change",
+        [start, end],
+        [start.format("YYYY-MM-DD"), end.format("YYYY-MM-DD")]
+      );
       // TODO if developer do not set the event listener for @change or @input, we may need change the startText and endText in the component,
       // TODO support v-model
     },
-    clickOutside () {
+    clickOutside() {
       if (!this.pickerVisible) return;
       this.clickApply();
     }
@@ -356,36 +382,36 @@ export default {
      * 如果使用 计算属性，则 clickPrevMonth 和 clickNextMonth 的时候，需要设置计算属性的 setter，但这时候 setter 就不知道写什么了
      * TODO 值变化的时候，什么时候执行 watch 呢？ nextTick 吗？
      */
-    start_ (value) {
+    start_(value) {
       this.hoverStart_ = value.clone();
       // inspired by https://github.com/dangrossman/daterangepicker/blob/master/daterangepicker.js#L554
       // fix #43
       if (value.month() === this.end_.month()) return;
       this.leftCalendarMonth_ = value.clone();
     },
-    end_ (value) {
+    end_(value) {
       this.hoverEnd_ = value.clone();
     },
     leftCalendarMonth_: {
-      handler (leftMonth) {
-        this.rightCalendarMonth_ = leftMonth.clone().add(1, 'month');
+      handler(leftMonth) {
+        this.rightCalendarMonth_ = leftMonth.clone().add(1, "month");
       },
-      immediate: true,
+      immediate: true
     },
-    startDate (value) {
+    startDate(value) {
       this.start_ = moment(value);
       this.startText = moment(value).format(this.locale.format);
       this.cloneStart = moment(value); // fix #14
     },
-    endDate (value) {
+    endDate(value) {
       this.end_ = moment(value);
       this.endText = moment(value).format(this.locale.format);
       this.cloneEnd = moment(value); // fix #14
       // TODO not linked calendar
-    },
-  },
+    }
+  }
 };
 </script>
 <style lang="scss" scoped>
-@import '../styles/components/picker.scss';
+@import "../styles/components/picker.scss";
 </style>

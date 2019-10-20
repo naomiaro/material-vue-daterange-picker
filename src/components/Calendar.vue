@@ -21,9 +21,7 @@
     </thead>
     <tbody>
       <tr>
-        <th v-for="(weekDay, dayIndex) in locale.daysOfWeek" :key="dayIndex">
-          {{ weekDay }}
-        </th>
+        <th v-for="(weekDay, dayIndex) in locale.daysOfWeek" :key="dayIndex">{{ weekDay }}</th>
       </tr>
       <tr v-for="(dateRow, rowIndex) in calendar" :key="rowIndex">
         <slot name="date-slot" v-for="(date, dateIndex) in dateRow">
@@ -34,9 +32,7 @@
             @click="$emit('dateClick', date)"
             @mouseover="$emit('hoverDate', date)"
           >
-            <div class="calendar-cell__content">
-              {{ date | dateNum }}
-            </div>
+            <div class="calendar-cell__content">{{ date | dateNum }}</div>
           </td>
         </slot>
       </tr>
@@ -45,15 +41,20 @@
 </template>
 
 <script>
-import moment from 'moment';
+import moment from "moment";
 
-function clean (momentDate) {
+function clean(momentDate) {
   /* eslint-disable */
-  return momentDate.clone().hour(0).minute(0).second(0).millisecond(0);
+  return momentDate
+    .clone()
+    .hour(0)
+    .minute(0)
+    .second(0)
+    .millisecond(0);
 }
 
 // _.range([start=0], end, [step=1])
-function range (start = 0, end, step = 1) {
+function range(start = 0, end, step = 1) {
   const arr = [];
   start = +start;
   end = +end;
@@ -64,16 +65,17 @@ function range (start = 0, end, step = 1) {
 }
 
 export default {
-  name: 'calendar',
-  inject: ['picker'],
-  props: ['location', 'calendarMonth', 'locale', 'start', 'end'],
+  name: "calendar",
+  inject: ["picker"],
+  props: ["location", "calendarMonth", "locale", "start", "end", "maxDate"],
   methods: {
-    dayClass (date) {
+    dayClass(date) {
       const dt = date.clone();
       const cleanDt = clean(dt.clone());
       const cleanToday = clean(moment());
       const cleanStart = clean(this.start);
       const cleanEnd = clean(this.end);
+      const cleanMaxDate = clean(this.maxDate);
       const hoverStart = clean(this.picker.hoverStart_);
       const hoverEnd = clean(this.picker.hoverEnd_);
 
@@ -86,36 +88,37 @@ export default {
         active: cleanDt.isSame(cleanStart) || cleanDt.isSame(cleanEnd),
         //  start <= dt <= end || hoverStart <= dt <= hoverEnd
         // 当第一次点击(确认了 start )之后，此时 endDate === startDate，鼠标 hover 和 click 都需要显示一个范围
-        'in-range':
+        "in-range":
           (dt >= cleanStart && dt <= cleanEnd) ||
           (dt >= hoverStart && dt <= hoverEnd),
-        'start-date': cleanDt.isSame(cleanStart),
-        'end-date': cleanDt.isSame(cleanEnd),
+        "start-date": cleanDt.isSame(cleanStart),
+        "end-date": cleanDt.isSame(cleanEnd),
+        "disabled-date": dt.isAfter(cleanMaxDate)
       };
-    },
+    }
   },
   computed: {
-    arrowLeftClass () {
-      return 'arrow-left v-drp__css-icon';
+    arrowLeftClass() {
+      return "arrow-left v-drp__css-icon";
     },
-    arrowRightClass () {
-      return 'arrow-right v-drp__css-icon';
+    arrowRightClass() {
+      return "arrow-right v-drp__css-icon";
     },
     // { Number } the month value for current calendar
-    month () {
+    month() {
       return this.calendarMonth.month();
     },
     // TODO 这种有有依赖关系的 computed 是怎么处理的？
-    monthName () {
+    monthName() {
       return this.locale.monthNames[this.month];
     },
-    year () {
+    year() {
       return this.calendarMonth.year();
     },
     /**
      * TODO 这是一个数组，computed 数组的值 变化的时候，template 是怎么知道更新的呢
      */
-    calendar () {
+    calendar() {
       // Build the matrix of dates that will populate the calendar
 
       const calendarMonth = this.calendarMonth;
@@ -127,8 +130,12 @@ export default {
       const daysInMonth = moment([year, month]).daysInMonth();
       const firstDay = moment([year, month, 1]);
       const lastDay = moment([year, month, daysInMonth]);
-      const lastMonth = moment(firstDay).subtract(1, 'month').month();
-      const lastYear = moment(firstDay).subtract(1, 'month').year();
+      const lastMonth = moment(firstDay)
+        .subtract(1, "month")
+        .month();
+      const lastYear = moment(firstDay)
+        .subtract(1, "month")
+        .year();
       const daysInLastMonth = moment([lastYear, lastMonth]).daysInMonth();
       const dayOfWeek = firstDay.day();
 
@@ -144,19 +151,31 @@ export default {
       // populate the calendar with date objects
       // 确定 6 * 7 日历中的第一天
       let startDay = daysInLastMonth - dayOfWeek + this.locale.firstDay + 1;
-       // 2015-02-01，该月第一天是周日，此时 startDay > daysInLastMonth
+      // 2015-02-01，该月第一天是周日，此时 startDay > daysInLastMonth
       // https://user-images.githubusercontent.com/12668546/51437731-43104280-1cdd-11e9-82ae-9c270144b2a9.png
-      if (startDay > daysInLastMonth) { startDay -= 7; }
-      if (dayOfWeek === this.locale.firstDay) { startDay = daysInLastMonth - 6; }
+      if (startDay > daysInLastMonth) {
+        startDay -= 7;
+      }
+      if (dayOfWeek === this.locale.firstDay) {
+        startDay = daysInLastMonth - 6;
+      }
 
       let curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
 
-      for (let i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = moment(curDate).add(24, 'hour')) {
+      for (
+        let i = 0, col = 0, row = 0;
+        i < 42;
+        i++, col++, curDate = moment(curDate).add(24, "hour")
+      ) {
         if (i > 0 && col % 7 === 0) {
           col = 0;
           row++;
         }
-        calendar[row][col] = curDate.clone().hour(hour).minute(minute).second(second);
+        calendar[row][col] = curDate
+          .clone()
+          .hour(hour)
+          .minute(minute)
+          .second(second);
         curDate.hour(12);
 
         // check for minDate and maxDate
@@ -172,37 +191,39 @@ export default {
       return calendar;
     },
     // if show year select
-    RangeOfYear () {
+    RangeOfYear() {
       if (!this.picker.showYearSelect) return [];
       // TODO 这边因为依赖计算属性：this.calendar 那么是否需要处理 this.calendar[1]为空的情况？
       // const currentYear = this.calendar[1][1].year();
 
       const picker = this.picker;
-      const maxYear = (picker.maxDate && picker.maxDate.year()) || picker.maxYear;
-      const minYear = (picker.minDate && picker.minDate.year()) || picker.minYear;
+      const maxYear =
+        (picker.maxDate_ && picker.maxDate_.year()) || picker.maxYear;
+      const minYear =
+        (picker.minDate && picker.minDate.year()) || picker.minYear;
       return range(minYear, maxYear, 1);
     },
     activeYear: {
-      get () {
+      get() {
         return this.calendarMonth.year();
       },
-      set (newYear) {
+      set(newYear) {
         const calendarMonth = moment([newYear, this.month]);
-        this.$emit('clickYearSelect', {
+        this.$emit("clickYearSelect", {
           location: this.location,
-          calendarMonth,
+          calendarMonth
         });
-      },
-    },
+      }
+    }
   },
   filters: {
-    dateNum (value) {
+    dateNum(value) {
       return value.date();
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/components/calendar.scss';
+@import "../styles/components/calendar.scss";
 </style>

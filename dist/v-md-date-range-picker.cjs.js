@@ -29,9 +29,9 @@ function range(start = 0, end, step = 1) {
 }
 
 var script = {
-  name: 'calendar',
-  inject: ['picker'],
-  props: ['location', 'calendarMonth', 'locale', 'start', 'end'],
+  name: "calendar",
+  inject: ["picker"],
+  props: ["location", "calendarMonth", "locale", "start", "end", "maxDate"],
   methods: {
     dayClass(date) {
       const dt = date.clone();
@@ -39,6 +39,7 @@ var script = {
       const cleanToday = clean(moment());
       const cleanStart = clean(this.start);
       const cleanEnd = clean(this.end);
+      const cleanMaxDate = clean(this.maxDate);
       const hoverStart = clean(this.picker.hoverStart_);
       const hoverEnd = clean(this.picker.hoverEnd_);
       return {
@@ -50,20 +51,21 @@ var script = {
         active: cleanDt.isSame(cleanStart) || cleanDt.isSame(cleanEnd),
         //  start <= dt <= end || hoverStart <= dt <= hoverEnd
         // 当第一次点击(确认了 start )之后，此时 endDate === startDate，鼠标 hover 和 click 都需要显示一个范围
-        'in-range': dt >= cleanStart && dt <= cleanEnd || dt >= hoverStart && dt <= hoverEnd,
-        'start-date': cleanDt.isSame(cleanStart),
-        'end-date': cleanDt.isSame(cleanEnd)
+        "in-range": dt >= cleanStart && dt <= cleanEnd || dt >= hoverStart && dt <= hoverEnd,
+        "start-date": cleanDt.isSame(cleanStart),
+        "end-date": cleanDt.isSame(cleanEnd),
+        "disabled-date": dt.isAfter(cleanMaxDate)
       };
     }
 
   },
   computed: {
     arrowLeftClass() {
-      return 'arrow-left v-drp__css-icon';
+      return "arrow-left v-drp__css-icon";
     },
 
     arrowRightClass() {
-      return 'arrow-right v-drp__css-icon';
+      return "arrow-right v-drp__css-icon";
     },
 
     // { Number } the month value for current calendar
@@ -94,8 +96,8 @@ var script = {
       const daysInMonth = moment([year, month]).daysInMonth();
       const firstDay = moment([year, month, 1]);
       const lastDay = moment([year, month, daysInMonth]);
-      const lastMonth = moment(firstDay).subtract(1, 'month').month();
-      const lastYear = moment(firstDay).subtract(1, 'month').year();
+      const lastMonth = moment(firstDay).subtract(1, "month").month();
+      const lastYear = moment(firstDay).subtract(1, "month").year();
       const daysInLastMonth = moment([lastYear, lastMonth]).daysInMonth();
       const dayOfWeek = firstDay.day(); // initialize a 6 rows x 7 columns array for the calendar
 
@@ -122,7 +124,7 @@ var script = {
 
       let curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
 
-      for (let i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = moment(curDate).add(24, 'hour')) {
+      for (let i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = moment(curDate).add(24, "hour")) {
         if (i > 0 && col % 7 === 0) {
           col = 0;
           row++;
@@ -147,7 +149,7 @@ var script = {
       // const currentYear = this.calendar[1][1].year();
 
       const picker = this.picker;
-      const maxYear = picker.maxDate && picker.maxDate.year() || picker.maxYear;
+      const maxYear = picker.maxDate_ && picker.maxDate_.year() || picker.maxYear;
       const minYear = picker.minDate && picker.minDate.year() || picker.minYear;
       return range(minYear, maxYear, 1);
     },
@@ -159,7 +161,7 @@ var script = {
 
       set(newYear) {
         const calendarMonth = moment([newYear, this.month]);
-        this.$emit('clickYearSelect', {
+        this.$emit("clickYearSelect", {
           location: this.location,
           calendarMonth
         });
@@ -314,17 +316,17 @@ var browser = createInjector;
 const __vue_script__ = script;
 
 /* template */
-var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('table',{staticClass:"calendar-table"},[_c('thead',[_c('tr',[_c('th',{staticClass:"prev available v-drp__css-icon-wrapper",on:{"click":function($event){return _vm.$emit('clickPrevMonth')}}},[_c('i',{class:[_vm.arrowLeftClass]})]),_vm._v(" "),_c('th',{staticClass:"month",attrs:{"colspan":"5"}},[_vm._v("\n        "+_vm._s(_vm.monthName)+"\n        "),_vm._v(" "),(_vm.picker.showYearSelect)?_c('select',{directives:[{name:"model",rawName:"v-model",value:(_vm.activeYear),expression:"activeYear"}],staticClass:"yearselect",on:{"change":function($event){var $$selectedVal = Array.prototype.filter.call($event.target.options,function(o){return o.selected}).map(function(o){var val = "_value" in o ? o._value : o.value;return val}); _vm.activeYear=$event.target.multiple ? $$selectedVal : $$selectedVal[0];}}},_vm._l((_vm.RangeOfYear),function(year,index){return _c('option',{key:index,domProps:{"value":year}},[_vm._v(_vm._s(year))])}),0):_c('span',[_vm._v(_vm._s(_vm.activeYear))])]),_vm._v(" "),_c('th',{staticClass:"next available v-drp__css-icon-wrapper",on:{"click":function($event){return _vm.$emit('clickNextMonth')}}},[_c('i',{class:[_vm.arrowRightClass]})])])]),_vm._v(" "),_c('tbody',[_c('tr',_vm._l((_vm.locale.daysOfWeek),function(weekDay,dayIndex){return _c('th',{key:dayIndex},[_vm._v("\n        "+_vm._s(weekDay)+"\n      ")])}),0),_vm._v(" "),_vm._l((_vm.calendar),function(dateRow,rowIndex){return _c('tr',{key:rowIndex},[_vm._l((dateRow),function(date,dateIndex){return _vm._t("date-slot",[_c('td',{key:dateIndex,staticClass:"calendar-cell",class:_vm.dayClass(date),on:{"click":function($event){return _vm.$emit('dateClick', date)},"mouseover":function($event){return _vm.$emit('hoverDate', date)}}},[_c('div',{staticClass:"calendar-cell__content"},[_vm._v("\n            "+_vm._s(_vm._f("dateNum")(date))+"\n          ")])])])})],2)})],2)])};
+var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('table',{staticClass:"calendar-table"},[_c('thead',[_c('tr',[_c('th',{staticClass:"prev available v-drp__css-icon-wrapper",on:{"click":function($event){return _vm.$emit('clickPrevMonth')}}},[_c('i',{class:[_vm.arrowLeftClass]})]),_vm._v(" "),_c('th',{staticClass:"month",attrs:{"colspan":"5"}},[_vm._v("\n        "+_vm._s(_vm.monthName)+"\n        "),_vm._v(" "),(_vm.picker.showYearSelect)?_c('select',{directives:[{name:"model",rawName:"v-model",value:(_vm.activeYear),expression:"activeYear"}],staticClass:"yearselect",on:{"change":function($event){var $$selectedVal = Array.prototype.filter.call($event.target.options,function(o){return o.selected}).map(function(o){var val = "_value" in o ? o._value : o.value;return val}); _vm.activeYear=$event.target.multiple ? $$selectedVal : $$selectedVal[0];}}},_vm._l((_vm.RangeOfYear),function(year,index){return _c('option',{key:index,domProps:{"value":year}},[_vm._v(_vm._s(year))])}),0):_c('span',[_vm._v(_vm._s(_vm.activeYear))])]),_vm._v(" "),_c('th',{staticClass:"next available v-drp__css-icon-wrapper",on:{"click":function($event){return _vm.$emit('clickNextMonth')}}},[_c('i',{class:[_vm.arrowRightClass]})])])]),_vm._v(" "),_c('tbody',[_c('tr',_vm._l((_vm.locale.daysOfWeek),function(weekDay,dayIndex){return _c('th',{key:dayIndex},[_vm._v(_vm._s(weekDay))])}),0),_vm._v(" "),_vm._l((_vm.calendar),function(dateRow,rowIndex){return _c('tr',{key:rowIndex},[_vm._l((dateRow),function(date,dateIndex){return _vm._t("date-slot",[_c('td',{key:dateIndex,staticClass:"calendar-cell",class:_vm.dayClass(date),on:{"click":function($event){return _vm.$emit('dateClick', date)},"mouseover":function($event){return _vm.$emit('hoverDate', date)}}},[_c('div',{staticClass:"calendar-cell__content"},[_vm._v(_vm._s(_vm._f("dateNum")(date)))])])])})],2)})],2)])};
 var __vue_staticRenderFns__ = [];
 
   /* style */
   const __vue_inject_styles__ = function (inject) {
     if (!inject) return
-    inject("data-v-89ba891e_0", { source: "table.calendar-table[data-v-89ba891e]{width:100%;margin:0;border-spacing:0;border-collapse:collapse}table.calendar-table td[data-v-89ba891e],table.calendar-table th[data-v-89ba891e],table.calendar-table tr[data-v-89ba891e]{border:none}table.calendar-table td[data-v-89ba891e],table.calendar-table th[data-v-89ba891e]{white-space:nowrap;text-align:center;vertical-align:middle;min-width:34px;width:34px;padding:17px 0;height:0;line-height:0;font-size:12px;white-space:nowrap;cursor:pointer}table.calendar-table td.calendar-cell[data-v-89ba891e]{position:relative}table.calendar-table td.calendar-cell[data-v-89ba891e]:hover{background-color:#eee;border-color:transparent;color:inherit}table.calendar-table td.calendar-cell.today[data-v-89ba891e]{font-weight:700}table.calendar-table td.calendar-cell.in-range[data-v-89ba891e]{background-color:#eef4ff;border-color:transparent;color:#000;border-radius:0}table.calendar-table td.calendar-cell.active[data-v-89ba891e],table.calendar-table td.calendar-cell.active[data-v-89ba891e]:hover{border-color:transparent;color:#fff}table.calendar-table td.calendar-cell.active.start-date[data-v-89ba891e],table.calendar-table td.calendar-cell.active:hover.start-date[data-v-89ba891e]{border-top-left-radius:34px;border-bottom-left-radius:34px}table.calendar-table td.calendar-cell.active.end-date[data-v-89ba891e],table.calendar-table td.calendar-cell.active:hover.end-date[data-v-89ba891e]{border-top-right-radius:34px;border-bottom-right-radius:34px}table.calendar-table td.calendar-cell.active .calendar-cell__content[data-v-89ba891e],table.calendar-table td.calendar-cell.active:hover .calendar-cell__content[data-v-89ba891e]{position:absolute;top:5%;left:5%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:90%;height:90%;line-height:1;border-radius:999px;background-color:#4285f4}table.calendar-table td.calendar-cell.off[data-v-89ba891e],table.calendar-table td.calendar-cell.off.end-date[data-v-89ba891e],table.calendar-table td.calendar-cell.off.in-range[data-v-89ba891e],table.calendar-table td.calendar-cell.off.start-date[data-v-89ba891e]{background-color:#fff;border-color:transparent;color:#999}table.calendar-table td.calendar-cell.off .calendar-cell__content[data-v-89ba891e],table.calendar-table td.calendar-cell.off.end-date .calendar-cell__content[data-v-89ba891e],table.calendar-table td.calendar-cell.off.in-range .calendar-cell__content[data-v-89ba891e],table.calendar-table td.calendar-cell.off.start-date .calendar-cell__content[data-v-89ba891e]{background-color:#fff}.v-drp__css-icon-wrapper[data-v-89ba891e]{position:relative}.v-drp__css-icon-wrapper .v-drp__css-icon.arrow-left[data-v-89ba891e]:before{content:'';position:absolute;left:50%;top:8px;width:7px;height:7px;border-top:solid 2px currentColor;border-right:solid 2px currentColor;transform:rotate(-135deg)}.v-drp__css-icon-wrapper .v-drp__css-icon.arrow-right[data-v-89ba891e]:before{content:'';position:absolute;right:50%;top:8px;width:7px;height:7px;border-top:solid 2px currentColor;border-right:solid 2px currentColor;transform:rotate(45deg)}", map: undefined, media: undefined });
+    inject("data-v-b11c9764_0", { source: "table.calendar-table[data-v-b11c9764]{width:100%;margin:0;border-spacing:0;border-collapse:collapse}table.calendar-table td[data-v-b11c9764],table.calendar-table th[data-v-b11c9764],table.calendar-table tr[data-v-b11c9764]{border:none}table.calendar-table td[data-v-b11c9764],table.calendar-table th[data-v-b11c9764]{white-space:nowrap;text-align:center;vertical-align:middle;min-width:34px;width:34px;padding:17px 0;height:0;line-height:0;font-size:12px;white-space:nowrap;cursor:pointer}table.calendar-table td.calendar-cell[data-v-b11c9764]{position:relative}table.calendar-table td.calendar-cell[data-v-b11c9764]:hover{background-color:#eee;border-color:transparent;color:inherit}table.calendar-table td.calendar-cell.today[data-v-b11c9764]{font-weight:700}table.calendar-table td.calendar-cell.in-range[data-v-b11c9764]{background-color:#eef4ff;border-color:transparent;color:#000;border-radius:0}table.calendar-table td.calendar-cell.active[data-v-b11c9764],table.calendar-table td.calendar-cell.active[data-v-b11c9764]:hover{border-color:transparent;color:#fff}table.calendar-table td.calendar-cell.active.start-date[data-v-b11c9764],table.calendar-table td.calendar-cell.active:hover.start-date[data-v-b11c9764]{border-top-left-radius:34px;border-bottom-left-radius:34px}table.calendar-table td.calendar-cell.active.end-date[data-v-b11c9764],table.calendar-table td.calendar-cell.active:hover.end-date[data-v-b11c9764]{border-top-right-radius:34px;border-bottom-right-radius:34px}table.calendar-table td.calendar-cell.active .calendar-cell__content[data-v-b11c9764],table.calendar-table td.calendar-cell.active:hover .calendar-cell__content[data-v-b11c9764]{position:absolute;top:5%;left:5%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:90%;height:90%;line-height:1;border-radius:999px;background-color:#4285f4}table.calendar-table td.calendar-cell.off[data-v-b11c9764],table.calendar-table td.calendar-cell.off.end-date[data-v-b11c9764],table.calendar-table td.calendar-cell.off.in-range[data-v-b11c9764],table.calendar-table td.calendar-cell.off.start-date[data-v-b11c9764]{background-color:#fff;border-color:transparent;color:#999}table.calendar-table td.calendar-cell.off .calendar-cell__content[data-v-b11c9764],table.calendar-table td.calendar-cell.off.end-date .calendar-cell__content[data-v-b11c9764],table.calendar-table td.calendar-cell.off.in-range .calendar-cell__content[data-v-b11c9764],table.calendar-table td.calendar-cell.off.start-date .calendar-cell__content[data-v-b11c9764]{background-color:#fff}table.calendar-table td.calendar-cell.disabled-date[data-v-b11c9764],table.calendar-table td.calendar-cell.off.disabled-date[data-v-b11c9764]{background-color:#fff;border-color:transparent;color:#ddd}table.calendar-table td.calendar-cell.disabled-date .calendar-cell__content[data-v-b11c9764],table.calendar-table td.calendar-cell.off.disabled-date .calendar-cell__content[data-v-b11c9764]{background-color:#fff}.v-drp__css-icon-wrapper[data-v-b11c9764]{position:relative}.v-drp__css-icon-wrapper .v-drp__css-icon.arrow-left[data-v-b11c9764]:before{content:\"\";position:absolute;left:50%;top:8px;width:7px;height:7px;border-top:solid 2px currentColor;border-right:solid 2px currentColor;transform:rotate(-135deg)}.v-drp__css-icon-wrapper .v-drp__css-icon.arrow-right[data-v-b11c9764]:before{content:\"\";position:absolute;right:50%;top:8px;width:7px;height:7px;border-top:solid 2px currentColor;border-right:solid 2px currentColor;transform:rotate(45deg)}", map: undefined, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__ = "data-v-89ba891e";
+  const __vue_scope_id__ = "data-v-b11c9764";
   /* module identifier */
   const __vue_module_identifier__ = undefined;
   /* functional template */
@@ -570,7 +572,7 @@ const defaultPresets = [{
 
 //
 var script$3 = {
-  name: 'v-md-date-range-picker',
+  name: "v-md-date-range-picker",
   components: {
     Calendar,
     CalendarRanges,
@@ -582,7 +584,7 @@ var script$3 = {
 
   provide() {
     return {
-      'picker': this
+      picker: this
     };
   },
 
@@ -591,12 +593,12 @@ var script$3 = {
     // If you provide a string, it must match the date format string set in your locale setting
     startDate: {
       type: String,
-      default: moment().format('YYYY-MM-DD')
+      default: moment().format("YYYY-MM-DD")
     },
     // The end date of the initially selected date range.
     endDate: {
       type: String,
-      default: moment().format('YYYY-MM-DD')
+      default: moment().format("YYYY-MM-DD")
     },
     // Set predefined date ranges the user can select from.
     // The range of each object an array with two dates representing the bounds of the range.
@@ -611,7 +613,7 @@ var script$3 = {
     // Whether the picker appears aligned to the left, to the right, or centered under the HTML element it's attached to.
     opens: {
       type: String,
-      default: 'left'
+      default: "left"
     },
     // Displays "Custom Range" at the end of the list of predefined ranges, when the ranges option is used.
     // This option will be highlighted whenever the current date range selection does not match one of the predefined ranges.
@@ -628,12 +630,17 @@ var script$3 = {
     // The minimum year shown in the dropdowns when showYearSelect is set to true.
     minYear: {
       type: String,
-      default: moment().subtract(100, 'year').format('YYYY')
+      default: moment().subtract(100, "year").format("YYYY")
     },
     // The maximum year shown in the dropdowns when showYearSelect is set to true.
     maxYear: {
       type: String,
-      default: moment().add(100, 'year').format('YYYY')
+      default: moment().add(100, "year").format("YYYY")
+    },
+    // The maximum date that is selectable.
+    maxDate: {
+      type: String,
+      default: moment().format("YYYY-MM-DD")
     },
     // Hide the apply and cancel buttons, and automatically apply a new date range as soon as two dates are clicked.
     autoApply: {
@@ -659,13 +666,13 @@ var script$3 = {
   data() {
     const data = {
       locale: {
-        direction: 'ltr',
-        format: moment.localeData().longDateFormat('L'),
-        separator: ' - ',
-        applyLabel: 'Apply',
-        cancelLabel: 'Cancel',
-        weekLabel: 'W',
-        customRangeLabel: 'Custom Range',
+        direction: "ltr",
+        format: moment.localeData().longDateFormat("L"),
+        separator: " - ",
+        applyLabel: "Apply",
+        cancelLabel: "Cancel",
+        weekLabel: "W",
+        customRangeLabel: "Custom Range",
         daysOfWeek: moment.weekdaysMin(),
         monthNames: moment.monthsShort(),
         firstDay: moment.localeData().firstDayOfWeek()
@@ -678,6 +685,7 @@ var script$3 = {
     data.rightCalendarMonth_ = moment(this.endDate);
     data.start_ = moment(this.startDate);
     data.end_ = moment(this.endDate);
+    data.maxDate_ = moment(this.maxDate);
     data.hoverStart_ = moment(this.startDate);
     data.hoverEnd_ = moment(this.endDate); // fix #14
 
@@ -712,18 +720,22 @@ var script$3 = {
     clickNextMonth() {
       // TODO 如果有 linkedCalendars，需要更新代码
       // moment.js 的 add 和 sub tract 的改变自身的行为没有被 watch 到，原因是什么呢？
-      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().add(1, 'month');
+      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().add(1, "month");
     },
 
     clickPrevMonth() {
       // TODO 如果有 linkedCalendars，需要更新代码
-      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().subtract(1, 'month');
+      this.leftCalendarMonth_ = this.leftCalendarMonth_.clone().subtract(1, "month");
     },
 
     /**
      * TODO type of value
      */
     dateClick(value) {
+      if (value.isAfter(this.maxDate_)) {
+        return;
+      }
+
       if (this.inRange) {
         // second click
         // second click action(第二次点击)
@@ -773,7 +785,7 @@ var script$3 = {
 
       const slotActivator = this.$slots.input && this.$slots.input.length && this.$slots.input[0].elm;
 
-      if (!elm && (slotActivator.querySelector('input') || slotActivator.querySelector('button'))) {
+      if (!elm && (slotActivator.querySelector("input") || slotActivator.querySelector("button"))) {
         elm = slotActivator;
       }
 
@@ -800,10 +812,10 @@ var script$3 = {
 
     pickerStyles() {
       return {
-        'show-calendar': this.pickerVisible,
-        'opens-arrow-pos-right': this.opens === 'right',
-        'opens-arrow-pos-left': this.opens === 'left',
-        'opens-arrow-pos-center': this.opens === 'center'
+        "show-calendar": this.pickerVisible,
+        "opens-arrow-pos-right": this.opens === "right",
+        "opens-arrow-pos-left": this.opens === "left",
+        "opens-arrow-pos-center": this.opens === "center"
       };
     },
 
@@ -841,7 +853,7 @@ var script$3 = {
 
     /**
      *
-    */
+     */
     updateTextField() {
       // do not update the input slot provided content by the parent
       if (this.$slots.input) return;
@@ -867,7 +879,7 @@ var script$3 = {
     emitChange() {
       const start = this.start_.clone();
       const end = this.end_.clone();
-      this.$emit('change', [start, end], [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')]); // TODO if developer do not set the event listener for @change or @input, we may need change the startText and endText in the component,
+      this.$emit("change", [start, end], [start.format("YYYY-MM-DD"), end.format("YYYY-MM-DD")]); // TODO if developer do not set the event listener for @change or @input, we may need change the startText and endText in the component,
       // TODO support v-model
     },
 
@@ -900,7 +912,7 @@ var script$3 = {
 
     leftCalendarMonth_: {
       handler(leftMonth) {
-        this.rightCalendarMonth_ = leftMonth.clone().add(1, 'month');
+        this.rightCalendarMonth_ = leftMonth.clone().add(1, "month");
       },
 
       immediate: true
@@ -926,17 +938,17 @@ var script$3 = {
 const __vue_script__$3 = script$3;
 
 /* template */
-var __vue_render__$3 = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{directives:[{name:"clickoutside",rawName:"v-clickoutside",value:(_vm.clickOutside),expression:"clickOutside"}],staticClass:"mdrp-root"},[_c('div',{staticClass:"mdrp__activator",on:{"click":_vm.togglePicker}},[_vm._t("input",[_c('default-activator',{ref:"defaultActivator",attrs:{"value":(_vm.startText + " - " + _vm.endText),"readonly":""}})])],2),_vm._v(" "),_c('transition',{attrs:{"name":"slide-fade","mode":"out-in"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.pickerVisible),expression:"pickerVisible"}],staticClass:"mdrp__panel dropdown-menu",class:_vm.pickerStyles()},[(_vm.showPresets && _vm.presets)?_c('calendar-ranges',{attrs:{"canSelect":_vm.inRange,"presets":_vm.presets},on:{"clickCancel":function($event){_vm.pickerVisible = false;},"clickApply":_vm.clickApply,"clickPreset":_vm.clickPreset}}):_vm._e(),_vm._v(" "),_c('calendar',{staticClass:"calendar left",attrs:{"location":"left","calendar-month":_vm.leftCalendarMonth_,"locale":_vm.locale,"start":_vm.start_,"end":_vm.end_,"hover-start":_vm.hoverStart_,"hover-end":_vm.hoverEnd_},on:{"clickNextMonth":_vm.clickNextMonth,"clickPrevMonth":_vm.clickPrevMonth,"dateClick":_vm.dateClick,"hoverDate":_vm.hoverDate,"clickYearSelect":_vm.clickYearSelect}}),_vm._v(" "),_c('calendar',{staticClass:"calendar right",attrs:{"location":"right","calendar-month":_vm.rightCalendarMonth_,"locale":_vm.locale,"start":_vm.start_,"end":_vm.end_,"hover-start":_vm.hoverStart_,"hover-end":_vm.hoverEnd_},on:{"clickNextMonth":_vm.clickNextMonth,"clickPrevMonth":_vm.clickPrevMonth,"dateClick":_vm.dateClick,"hoverDate":_vm.hoverDate,"clickYearSelect":_vm.clickYearSelect}})],1)])],1)};
+var __vue_render__$3 = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{directives:[{name:"clickoutside",rawName:"v-clickoutside",value:(_vm.clickOutside),expression:"clickOutside"}],staticClass:"mdrp-root"},[_c('div',{staticClass:"mdrp__activator",on:{"click":_vm.togglePicker}},[_vm._t("input",[_c('default-activator',{ref:"defaultActivator",attrs:{"value":(_vm.startText + " - " + _vm.endText),"readonly":""}})])],2),_vm._v(" "),_c('transition',{attrs:{"name":"slide-fade","mode":"out-in"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.pickerVisible),expression:"pickerVisible"}],staticClass:"mdrp__panel dropdown-menu",class:_vm.pickerStyles()},[(_vm.showPresets && _vm.presets)?_c('calendar-ranges',{attrs:{"canSelect":_vm.inRange,"presets":_vm.presets},on:{"clickCancel":function($event){_vm.pickerVisible = false;},"clickApply":_vm.clickApply,"clickPreset":_vm.clickPreset}}):_vm._e(),_vm._v(" "),_c('calendar',{staticClass:"calendar left",attrs:{"location":"left","calendar-month":_vm.leftCalendarMonth_,"locale":_vm.locale,"start":_vm.start_,"end":_vm.end_,"maxDate":_vm.maxDate_,"hover-start":_vm.hoverStart_,"hover-end":_vm.hoverEnd_},on:{"clickNextMonth":_vm.clickNextMonth,"clickPrevMonth":_vm.clickPrevMonth,"dateClick":_vm.dateClick,"hoverDate":_vm.hoverDate,"clickYearSelect":_vm.clickYearSelect}}),_vm._v(" "),_c('calendar',{staticClass:"calendar right",attrs:{"location":"right","calendar-month":_vm.rightCalendarMonth_,"locale":_vm.locale,"start":_vm.start_,"end":_vm.end_,"maxDate":_vm.maxDate_,"hover-start":_vm.hoverStart_,"hover-end":_vm.hoverEnd_},on:{"clickNextMonth":_vm.clickNextMonth,"clickPrevMonth":_vm.clickPrevMonth,"dateClick":_vm.dateClick,"hoverDate":_vm.hoverDate,"clickYearSelect":_vm.clickYearSelect}})],1)])],1)};
 var __vue_staticRenderFns__$3 = [];
 
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-7863e830_0", { source: "@charset \"UTF-8\";*[data-v-7863e830]{box-sizing:border-box}.mdrp__panel.opens-arrow-pos-center[data-v-7863e830]::after,.mdrp__panel.opens-arrow-pos-center[data-v-7863e830]::before{left:0;right:0;width:0;margin-left:auto;margin-right:auto}.mdrp-root[data-v-7863e830]{position:relative;display:inline-block}.mdrp__panel[data-v-7863e830]{font-size:15px;line-height:1em;position:absolute;z-index:3001;top:100px;left:20px;width:278px;max-width:none;margin-top:7px;padding:0;color:inherit;border:1px solid #ddd;border-radius:4px;background-color:#fff}.mdrp__panel.show-calendar[data-v-7863e830]{display:block}.mdrp__panel[data-v-7863e830]::after,.mdrp__panel[data-v-7863e830]::before{position:absolute;display:inline-block;border-bottom-color:red;content:\"\"}.mdrp__panel[data-v-7863e830]::before{top:-7px;border-right:7px solid transparent;border-bottom:7px solid #ccc;border-left:7px solid transparent}.mdrp__panel[data-v-7863e830]::after{top:-6px;border-right:6px solid transparent;border-bottom:6px solid #fff;border-left:6px solid transparent}.mdrp__panel.opens-arrow-pos-left[data-v-7863e830]{top:40px;left:10px;right:auto}.mdrp__panel.opens-arrow-pos-left[data-v-7863e830]::before{left:9px}.mdrp__panel.opens-arrow-pos-left[data-v-7863e830]::after{left:10px}.mdrp__panel.opens-arrow-pos-right[data-v-7863e830]{top:40px;right:10px;left:auto}.mdrp__panel.opens-arrow-pos-right[data-v-7863e830]::before{right:9px}.mdrp__panel.opens-arrow-pos-right[data-v-7863e830]::after{right:10px}.mdrp__panel.opens-arrow-pos-center[data-v-7863e830]{top:40px}.mdrp__panel.dropdown-menu[data-v-7863e830]{max-width:none;z-index:9}.mdrp__panel .calendar-table[data-v-7863e830]{display:none;max-width:270px}.mdrp__panel.show-calendar .calendar-table[data-v-7863e830]{display:block}@media (min-width:564px){.mdrp__panel[data-v-7863e830]{width:auto}.mdrp__panel.show-calendar[data-v-7863e830]{display:inline-flex}.mdrp__panel .calendar-table.left[data-v-7863e830]{padding:8px 0 8px 8px}.mdrp__panel .calendar-table.right[data-v-7863e830]{padding:8px}}.slide-fade-enter-active[data-v-7863e830]{transition:all .2s ease}.slide-fade-leave-active[data-v-7863e830]{transition:all .1s cubic-bezier(1,.5,.8,1)}.slide-fade-enter[data-v-7863e830],.slide-fade-leave-to[data-v-7863e830]{transform:translateX(10px);opacity:0}", map: undefined, media: undefined });
+    inject("data-v-2003a083_0", { source: "@charset \"UTF-8\";*[data-v-2003a083]{box-sizing:border-box}.mdrp__panel.opens-arrow-pos-center[data-v-2003a083]::after,.mdrp__panel.opens-arrow-pos-center[data-v-2003a083]::before{left:0;right:0;width:0;margin-left:auto;margin-right:auto}.mdrp-root[data-v-2003a083]{position:relative;display:inline-block}.mdrp__panel[data-v-2003a083]{font-size:15px;line-height:1em;position:absolute;z-index:3001;top:100px;left:20px;width:278px;max-width:none;margin-top:7px;padding:0;color:inherit;border:1px solid #ddd;border-radius:4px;background-color:#fff}.mdrp__panel.show-calendar[data-v-2003a083]{display:block}.mdrp__panel[data-v-2003a083]::after,.mdrp__panel[data-v-2003a083]::before{position:absolute;display:inline-block;border-bottom-color:red;content:\"\"}.mdrp__panel[data-v-2003a083]::before{top:-7px;border-right:7px solid transparent;border-bottom:7px solid #ccc;border-left:7px solid transparent}.mdrp__panel[data-v-2003a083]::after{top:-6px;border-right:6px solid transparent;border-bottom:6px solid #fff;border-left:6px solid transparent}.mdrp__panel.opens-arrow-pos-left[data-v-2003a083]{top:40px;left:10px;right:auto}.mdrp__panel.opens-arrow-pos-left[data-v-2003a083]::before{left:9px}.mdrp__panel.opens-arrow-pos-left[data-v-2003a083]::after{left:10px}.mdrp__panel.opens-arrow-pos-right[data-v-2003a083]{top:40px;right:10px;left:auto}.mdrp__panel.opens-arrow-pos-right[data-v-2003a083]::before{right:9px}.mdrp__panel.opens-arrow-pos-right[data-v-2003a083]::after{right:10px}.mdrp__panel.opens-arrow-pos-center[data-v-2003a083]{top:40px}.mdrp__panel.dropdown-menu[data-v-2003a083]{max-width:none;z-index:9}.mdrp__panel .calendar-table[data-v-2003a083]{display:none;max-width:270px}.mdrp__panel.show-calendar .calendar-table[data-v-2003a083]{display:block}@media (min-width:564px){.mdrp__panel[data-v-2003a083]{width:auto}.mdrp__panel.show-calendar[data-v-2003a083]{display:inline-flex}.mdrp__panel .calendar-table.left[data-v-2003a083]{padding:8px 0 8px 8px}.mdrp__panel .calendar-table.right[data-v-2003a083]{padding:8px}}.slide-fade-enter-active[data-v-2003a083]{transition:all .2s ease}.slide-fade-leave-active[data-v-2003a083]{transition:all .1s cubic-bezier(1,.5,.8,1)}.slide-fade-enter[data-v-2003a083],.slide-fade-leave-to[data-v-2003a083]{transform:translateX(10px);opacity:0}", map: undefined, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$3 = "data-v-7863e830";
+  const __vue_scope_id__$3 = "data-v-2003a083";
   /* module identifier */
   const __vue_module_identifier__$3 = undefined;
   /* functional template */

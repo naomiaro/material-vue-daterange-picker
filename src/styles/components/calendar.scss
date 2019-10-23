@@ -2,7 +2,6 @@ $cellActiveBgColor: #4285f4;
 $cellInRangeBgColor: #eef4ff;
 $cellSize: 34px;
 
-
 table.calendar-table {
   width: 100%;
   margin: 0;
@@ -102,7 +101,6 @@ table.calendar-table {
         // height: 100%;
         // border-radius: 0;
         // background-color: $cellActiveBgColor;
-
       }
     }
 
@@ -120,6 +118,18 @@ table.calendar-table {
         background-color: #fff;
       }
     }
+
+    // items past maxDate
+    &.disabled-date,
+    &.off.disabled-date {
+      background-color: #fff;
+      border-color: transparent;
+      color: #ddd;
+
+      .calendar-cell__content {
+        background-color: #fff;
+      }
+    }
   }
 }
 
@@ -128,9 +138,8 @@ table.calendar-table {
   position: relative;
 
   .v-drp__css-icon {
-
     &.arrow-left:before {
-      content: '';
+      content: "";
       position: absolute;
       left: 50%;
       top: 8px;
@@ -142,7 +151,7 @@ table.calendar-table {
     }
 
     &.arrow-right:before {
-      content: '';
+      content: "";
       position: absolute;
       right: 50%;
       top: 8px;
@@ -153,5 +162,4 @@ table.calendar-table {
       transform: rotate(45deg);
     }
   }
-
 }
